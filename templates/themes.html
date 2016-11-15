@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+
+{% macro render_priority(priority) %}
+    {% if priority == 50 %}
+        Highest
+    {% elif priority == 40 %}
+        High
+    {% elif priority == 30 %}
+        Medium
+    {% elif priority == 20 %}
+        Low
+    {% elif priority == 10 %}
+        Lowest
+    {% else %}
+        Unknown ({{ priority }})
+    {% endif %}
+{% endmacro %}
+
+{% macro render_themes(themes_list) %}
+    {% if themes_list == [] %}
+        <p><em>(None)</em></p>
+
+    {% else %}
+		{% for theme in themes_list %}
+
+			<div class="theme">
+			<p>Priority: {{ render_priority(theme["priority"]) }} (<a href="/themes/{{ theme["id"] }}/priority/up">up</a> / <a href="/themes/{{ theme["id"] }}/priority/down">down</a>) | Submitted {{ theme["created"].date() }} by {{ theme["login"] }} {#, responsible: <strong>petrov</strong>, <strong>sidorov</strong> (<a href="#">join / leave</a>) #}</p>
+			<p>{{ encode_description(theme["description"])|safe }}</p>
+			<p>Actions: <a href="/themes/{{ theme["id"] }}/edit">edit</a>, mark:
+                     <a href="/themes/{{ theme["id"] }}/mark/current">current</a>,
+                     <a href="/themes/{{ theme["id"] }}/mark/regular">regular</a>,
+                     <a href="/themes/{{ theme["id"] }}/mark/discussed">discussed</a>.
+{# | Actions: <a href="#">Edit</a>, <a href="#">Delete</a> #}
+            </p>
+			</div>
+
+		{% endfor %}
+    {% endif %}
+{% endmacro %}
+
+{% block title %}Themes{% endblock %}
+{% block body %}
+	<h2>Current</h2>
+
+    {{ render_themes(current) }}
+
+	<h2>Regular</h2>
+
+    {{ render_themes(regular) }}
+
+	<h2>Discussed</h3>
+    <form action="/themes/clear_discussed" method="post">
+	<p>Clear discussed: <input type="checkbox" name="sure" value="sure"> I know what I'm doing <input type="submit" value="Clear!" /></p>
+    </form>
+
+    {{ render_themes(discussed) }}
+
+{% endblock %}
+
