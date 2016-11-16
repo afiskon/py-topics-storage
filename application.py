@@ -25,7 +25,7 @@ app.jinja_env.globals.update(encode_description = encode_description)
 class SubmitForm(Form):
     description = StringField('Description', widget=TextArea())
 
-class ClearDiscussedForm(Form):
+class SureForm(Form):
     sure = BooleanField('Sure')
 
 def db_conn():
@@ -55,10 +55,14 @@ def error_405(e):
 def get_static(path):
     return send_from_directory('static', path)
 
-@app.route('/recording', methods=['GET'])
+@app.route('/recording', methods=['GET', 'POST'])
 def get_recording():
     with db_conn() as db:
-        rows = db.query("select (value :: timestamp) from global where key = 'recording_start_time'")
+        form = SureForm(flask.request.form)
+        if form.validate() and form.sure.data == True:
+            db.query("""UPDATE global SET value = (now() :: text) WHERE key = 'recording_start_time'""")
+
+        rows = db.query("SELECT (value :: timestamp) FROM global WHERE key = 'recording_start_time'")
         return flask.render_template('recording.html', section = "recording", timestamp = rows[0])
 
 @app.route('/themes', methods=['GET'])
@@ -150,7 +154,7 @@ def post_discussed_export():
 
 @app.route('/themes/discussed/clear', methods=['POST'])
 def post_discussed_clear():
-    form = ClearDiscussedForm(flask.request.form)
+    form = SureForm(flask.request.form)
     if form.validate() and form.sure.data == True:
          with db_conn() as db:
             db.query("""DELETE FROM themes WHERE status = 'd'""")

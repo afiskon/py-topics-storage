@@ -3,11 +3,11 @@
 {% block body %}
 <h1>Recording</h1>
 
-<p>Last saved timestamp: {{ timestamp["value"] }}.</p>
+<p>Saved recording start time: {{ timestamp["value"] }}.</p>
 
 <form action="/recording" method="post">
-<p>Start recording: 
+<p>Update timestamp: 
 <input type="checkbox" name="sure" value="sure"> I know what I'm doing
-<input type="submit" value="Start!" /></p>
+<input type="submit" value="Update!" /></p>
 </form>
 {% endblock %}
