@@ -1,6 +1,16 @@
 {% extends "layout.html" %}
-{% block title %}Export{% endblock %}
+{% block title %}Export links{% endblock %}
 {% block body %}
-<h1>Export</h1>
-<p>TBD</p>
+<h1>Export links</h1>
+<p>
+{% if urls == [] %}
+<em>(No links)</em>
+{% else %}
+    <ul>
+    {% for url in urls %}
+        <li><a href="{{ url }}">{{ url }}</a></li>
+    {% endfor %}
+    </ul>
+{% endif %}
+</p>
 {% endblock %}

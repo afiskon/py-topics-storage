@@ -13,9 +13,11 @@ app = flask.Flask(__name__)
 # disables JSON pretty-printing in flask.jsonify
 # app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
+link_regexp = '''(?i)(https?://[^\s\"]+)'''
+
 def encode_description(desc):
     temp = desc.replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br />") 
-    temp = re.sub('''(?i)(https?://[^\s\"]+)''', '''<a href="\\1">\\1</a>''', temp)
+    temp = re.sub(link_regexp, '''<a href="\\1">\\1</a>''', temp)
     return temp
 
 app.jinja_env.globals.update(encode_description = encode_description)
@@ -119,9 +121,14 @@ def get_priority(theme_id, action):
 
 @app.route('/themes/discussed/export', methods=['GET', 'POST'])
 def post_discussed_export():
-	with db_conn() as db:
-		desc_list = db.query("""SELECT description FROM themes WHERE status = 'd'""")
-		return flask.render_template('export.html', section = "themes")
+    with db_conn() as db:
+        desc_list = db.query("""SELECT description FROM themes WHERE status = 'd' ORDER BY updated""")
+        urls = []
+        for (desc,) in desc_list:
+            # app.logger.info("""description = {}""".format(desc))
+            for m in re.finditer(link_regexp, desc):
+                urls.append(m.group(1))
+        return flask.render_template('export.html', section = "themes", urls = urls)
 
 
 @app.route('/themes/discussed/cear', methods=['POST'])
