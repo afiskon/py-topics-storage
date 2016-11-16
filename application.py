@@ -55,6 +55,15 @@ def error_405(e):
 def get_static(path):
     return send_from_directory('static', path)
 
+@app.route('/recording', methods=['GET'])
+def get_recording():
+    with db_conn() as db:
+        #select = "SELECT t.*, u.login FROM themes AS t LEFT JOIN users AS u ON u.id = t.created_by" 
+        #current = db.query(select + " WHERE t.status = 'c'")
+        #regular = db.query(select + " WHERE t.status = 'r' ORDER BY t.priority DESC")
+        #discussed = db.query(select + " WHERE t.status = 'd' ORDER BY t.updated")
+        return flask.render_template('recording.html', section = "recording")
+
 @app.route('/themes', methods=['GET'])
 def get_themes():
     with db_conn() as db:

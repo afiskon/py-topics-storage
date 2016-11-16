@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block title %}Recording{% endblock %}
+{% block body %}
+<h1>Recording</h1>
+
+<p>Last saved timestamp: <em>(None)</em>.</p>
+
+<form action="/recording" method="post">
+<p>Start recording: 
+<input type="checkbox" name="sure" value="sure"> I know what I'm doing
+<input type="submit" value="Start!" /></p>
+</form>
+{% endblock %}
