@@ -131,7 +131,7 @@ def post_discussed_export():
         return flask.render_template('export.html', section = "themes", urls = urls)
 
 
-@app.route('/themes/discussed/cear', methods=['POST'])
+@app.route('/themes/discussed/clear', methods=['POST'])
 def post_discussed_clear():
     form = ClearDiscussedForm(flask.request.form)
     if form.validate() and form.sure.data == True:
