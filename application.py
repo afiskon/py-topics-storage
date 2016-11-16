@@ -95,14 +95,25 @@ def get_themes_edit(theme_id):
             return flask.render_template('edit.html', section = "submit", theme_id = theme_id, form = form)
 
 
-@app.route('/themes/<int:theme_id>/mark/<string:status_str>', methods=['GET'])
-def get_mark(theme_id, status_str):
-    if not (status_str == "current" or status_str == "regular" or status_str == "discussed"):
+@app.route('/themes/<int:theme_id>/mark/current', methods=['GET'])
+def get_mark_current(theme_id):
+    with db_conn() as db:
+        update = db.prepare("""UPDATE themes SET status = 'c', updated = now(), current_at = now() WHERE id = $1""")
+        update(theme_id)
         return flask.redirect('/themes')
 
+@app.route('/themes/<int:theme_id>/mark/regular', methods=['GET'])
+def get_mark_regular(theme_id):
     with db_conn() as db:
-        update = db.prepare("""UPDATE themes SET status = $2, updated = now() WHERE id = $1""")
-        update(theme_id, status_str[0])
+        update = db.prepare("""UPDATE themes SET status = 'r', updated = now() WHERE id = $1""")
+        update(theme_id)
+        return flask.redirect('/themes')
+
+@app.route('/themes/<int:theme_id>/mark/discussed', methods=['GET'])
+def get_mark_discussed(theme_id):
+    with db_conn() as db:
+        update = db.prepare("""UPDATE themes SET status = 'd', updated = now(), discussed_at = now() WHERE id = $1""")
+        update(theme_id)
         return flask.redirect('/themes')
 
 @app.route('/themes/<int:theme_id>/priority/<string:action>', methods=['GET'])
