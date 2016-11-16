@@ -3,7 +3,7 @@
 {% block body %}
 <h1>Recording</h1>
 
-<p>Last saved timestamp: <em>(None)</em>.</p>
+<p>Last saved timestamp: {{ timestamp["value"] }}.</p>
 
 <form action="/recording" method="post">
 <p>Start recording: 

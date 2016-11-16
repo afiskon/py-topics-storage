@@ -56,3 +56,5 @@ create table global(
   key varchar(128),
   value varchar(128)
 );
+
+insert into global values ( 'recording_start_time', now() :: text );

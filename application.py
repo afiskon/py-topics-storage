@@ -58,11 +58,8 @@ def get_static(path):
 @app.route('/recording', methods=['GET'])
 def get_recording():
     with db_conn() as db:
-        #select = "SELECT t.*, u.login FROM themes AS t LEFT JOIN users AS u ON u.id = t.created_by" 
-        #current = db.query(select + " WHERE t.status = 'c'")
-        #regular = db.query(select + " WHERE t.status = 'r' ORDER BY t.priority DESC")
-        #discussed = db.query(select + " WHERE t.status = 'd' ORDER BY t.updated")
-        return flask.render_template('recording.html', section = "recording")
+        rows = db.query("select (value :: timestamp) from global where key = 'recording_start_time'")
+        return flask.render_template('recording.html', section = "recording", timestamp = rows[0])
 
 @app.route('/themes', methods=['GET'])
 def get_themes():
