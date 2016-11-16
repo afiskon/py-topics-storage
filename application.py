@@ -141,8 +141,8 @@ def get_priority(theme_id, action):
         update(theme_id, delta)
         return flask.redirect('/themes')
 
-@app.route('/themes/discussed/export', methods=['GET', 'POST'])
-def post_discussed_export():
+@app.route('/export/classic', methods=['GET'])
+def get_export_classic():
     with db_conn() as db:
         desc_list = db.query("""SELECT description FROM themes WHERE status = 'd' ORDER BY updated""")
         urls = []
@@ -150,7 +150,19 @@ def post_discussed_export():
             # app.logger.info("""description = {}""".format(desc))
             for m in re.finditer(link_regexp, desc):
                 urls.append(m.group(1))
-        return flask.render_template('export.html', section = "themes", urls = urls)
+        return flask.render_template('export_classic.html', section = "themes", urls = urls)
+
+@app.route('/export/advanced', methods=['GET'])
+def get_export_advanced():
+    with db_conn() as db:
+        themes_list = db.query("""SELECT * FROM themes WHERE status = 'd' ORDER BY updated""")
+        text = "<strong>under construction</strong>"
+        #urls = []
+        #for (desc,) in desc_list:
+        #    # app.logger.info("""description = {}""".format(desc))
+        #    for m in re.finditer(link_regexp, desc):
+        #        urls.append(m.group(1))
+        return flask.render_template('export_advanced.html', section = "themes", text = text)
 
 
 @app.route('/themes/discussed/clear', methods=['POST'])
