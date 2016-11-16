@@ -3,6 +3,7 @@
 {% block body %}
 <h1>Edit theme</h1>
 <form method="post" action="/themes/{{ theme_id }}/edit">
+<p>Title: {{ form.title(size="70") }}</p>
 {{ form.description(cols="80", rows="5") }}
 <p><input type="submit" value="Submit"></p>
 </form>

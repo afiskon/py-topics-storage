@@ -23,6 +23,7 @@ def encode_description(desc):
 app.jinja_env.globals.update(encode_description = encode_description)
 
 class SubmitForm(Form):
+    title = StringField('Title', [validators.required(), validators.length(max=128)])
     description = StringField('Description', widget=TextArea())
 
 class SureForm(Form):
@@ -83,8 +84,8 @@ def get_submit():
             # app.logger.info("""uid = {}, description = {}""".format(uid, form.description.data))
             insert = db.prepare(
                 "INSERT INTO themes (title, description, rev, created, created_by, updated, updated_by, current_at, discussed_at, status, priority) " +
-                "VALUES ('', $1, 1, now(), $2, now(), $2, now(), now(), 'r', 30) ")
-            insert(form.description.data, uid)
+                "VALUES ($1, $2, 1, now(), $3, now(), $3, now(), now(), 'r', 30) ")
+            insert(form.title.data, form.description.data, uid)
             return flask.redirect('/themes')
 
     return flask.render_template('submit.html', section = "submit", form = form)
@@ -94,14 +95,14 @@ def get_themes_edit(theme_id):
     form = SubmitForm(flask.request.form)
     if flask.request.method == 'POST' and form.validate():
          with db_conn() as db:
-            update = db.prepare("""UPDATE themes SET description = $2, updated = now(), rev = rev + 1 WHERE id = $1""")
-            update(theme_id, form.description.data)
+            update = db.prepare("""UPDATE themes SET title = $2, description = $3, updated = now(), rev = rev + 1 WHERE id = $1""")
+            update(theme_id, form.title.data, form.description.data)
             return flask.redirect('/themes')
     else:
         with db_conn() as db:
-            select = db.prepare("""SELECT description FROM themes WHERE id = $1""")
-            [(description,)] = select(theme_id)
-            form = SubmitForm(description = description)
+            select = db.prepare("""SELECT title, description FROM themes WHERE id = $1""")
+            [(title, description)] = select(theme_id)
+            form = SubmitForm(title = title, description = description)
             return flask.render_template('edit.html', section = "submit", theme_id = theme_id, form = form)
 
 
