@@ -72,8 +72,8 @@ def get_submit():
             [(uid,)] = db.query("""SELECT id FROM users WHERE login = 'admin'""")
             # app.logger.info("""uid = {}, description = {}""".format(uid, form.description.data))
             insert = db.prepare(
-                "INSERT INTO themes (description, rev, created, created_by, updated, updated_by, status, priority) " +
-                "VALUES ($1, 1, now(), $2, now(), $2, 'r', 30) ")
+                "INSERT INTO themes (title, url, description, rev, created, created_by, updated, updated_by, current_at, discussed_at, status, priority) " +
+                "VALUES ('', '', $1, 1, now(), $2, now(), $2, now(), now(), 'r', 30) ")
             insert(form.description.data, uid)
             return flask.redirect('/themes')
 

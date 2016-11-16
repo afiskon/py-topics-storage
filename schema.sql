@@ -25,11 +25,15 @@ values(
 create table themes(
   id serial not null primary key,
   rev int not null,
-  description text not null, -- text and url(s) 
+  title varchar(128) not null, -- required
+  url varchar(128) not null,   -- optional
+  description text not null,   -- optional
   created timestamp not null,
   created_by int references users(id) not null,
   updated timestamp not null,
   updated_by int references users(id) not null,
+  current_at timestamp not null,
+  discussed_at timestamp not null,
   status char not null, -- 'c': current, 'r': regular, 'd': discussed
   priority int not null -- 50: highest, 40: high, 30: medium, 20: low, 10: lowest
 );
@@ -46,4 +50,9 @@ create table invites(
   created timestamp not null,
   created_by int references users(id) not null,
   used_by int references users(id) -- can by null
+);
+
+create table global(
+  key varchar(128),
+  value varchar(128)
 );
