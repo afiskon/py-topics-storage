@@ -117,8 +117,15 @@ def get_priority(theme_id, action):
         update(theme_id, delta)
         return flask.redirect('/themes')
 
-@app.route('/themes/clear_discussed', methods=['POST'])
-def post_clear_discussed():
+@app.route('/themes/discussed/export', methods=['GET', 'POST'])
+def post_discussed_export():
+	with db_conn() as db:
+		desc_list = db.query("""SELECT description FROM themes WHERE status = 'd'""")
+		return flask.render_template('export.html', section = "themes")
+
+
+@app.route('/themes/discussed/cear', methods=['POST'])
+def post_discussed_clear():
     form = ClearDiscussedForm(flask.request.form)
     if form.validate() and form.sure.data == True:
          with db_conn() as db:

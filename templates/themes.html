@@ -49,9 +49,19 @@
     {{ render_themes(regular) }}
 
 	<h2>Discussed</h3>
-    <form action="/themes/clear_discussed" method="post">
-	<p>Clear discussed: <input type="checkbox" name="sure" value="sure"> I know what I'm doing <input type="submit" value="Clear!" /></p>
+
+    <div style="float: left;">
+    <form action="/themes/discussed/export" method="post">
+	Export links: <input type="submit" value="Export!" />
     </form>
+    </div>
+
+    <div style="float: right;">
+    <form action="/themes/discussed/clear" method="post">
+	Clear discussed: <input type="checkbox" name="sure" value="sure"> I know what I'm doing <input type="submit" value="Clear!" />
+    </form>
+    </div>
+    <div style="clear: both;"></div>
 
     {{ render_themes(discussed) }}
 
