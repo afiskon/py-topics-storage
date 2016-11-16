@@ -26,7 +26,6 @@ create table themes(
   id serial not null primary key,
   rev int not null,
   title varchar(128) not null, -- required
-  url varchar(128) not null,   -- optional
   description text not null,   -- optional
   created timestamp not null,
   created_by int references users(id) not null,
