@@ -15,8 +15,11 @@ app = flask.Flask(__name__)
 
 link_regexp = '''(?i)(https?://[^\s\"]+)'''
 
+def html_encode(text):
+    return desc.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;") 
+
 def encode_description(desc):
-    temp = desc.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br />") 
+    temp = html_encode(desc).replace("\n", "<br />") 
     temp = re.sub(link_regexp, '''<a href="\\1">\\1</a>''', temp)
     return temp
 
@@ -168,11 +171,11 @@ def get_export_advanced():
             delta_t = max(0, theme["theme_tstamp"] - start_tstamp)
             delta = "{:02}:{:02}:{:02}".format(int(delta_t / (60*60)), int(delta_t / 60) % 60, delta_t % 60)
             if len(urls) == 0:
-                text += """<li>[{}] {}</li>\n""".format(delta, theme["title"])
+                text += """<li>[{}] {}</li>\n""".format(delta, html_encode(theme["title"]))
             elif len(urls) == 1:
-                text += """<li>[{}] <a href="{}">{}</a></li>\n""".format(delta, urls[0], theme["title"])
+                text += """<li>[{}] <a href="{}">{}</a></li>\n""".format(delta, urls[0], html_encode(theme["title"]))
             else:
-                text += """<li>[{}] {}\n""".format(delta, theme["title"])
+                text += """<li>[{}] {}\n""".format(delta, html_encode(theme["title"]))
                 text += "<ul>\n"
                 for url in urls:
                     text += """  <li><a href="{}">{}</a></li>\n""".format(url, url)
