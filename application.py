@@ -155,13 +155,30 @@ def get_export_classic():
 @app.route('/export/advanced', methods=['GET'])
 def get_export_advanced():
     with db_conn() as db:
-        themes_list = db.query("""SELECT * FROM themes WHERE status = 'd' ORDER BY updated""")
-        text = "<strong>under construction</strong>"
-        #urls = []
-        #for (desc,) in desc_list:
-        #    # app.logger.info("""description = {}""".format(desc))
-        #    for m in re.finditer(link_regexp, desc):
-        #        urls.append(m.group(1))
+        select = db.prepare("""SELECT (extract (epoch from (value :: timestamp))) :: int """ + 
+                            """FROM global WHERE key = 'recording_start_time'""")
+        [(start_tstamp,)] = select()
+        themes_list = db.query("""SELECT t.*, ((extract (epoch from (current_at :: timestamp))) :: int) AS theme_tstamp """ + 
+                               """FROM themes AS t WHERE t.status = 'd' ORDER BY updated""")
+        text = "<ul>\n"
+        for theme in themes_list:
+            urls = []
+            for m in re.finditer(link_regexp, theme["description"]):
+                urls.append(m.group(1))
+            delta_t = max(0, theme["theme_tstamp"] - start_tstamp)
+            delta = "{:02}:{:02}:{:02}".format(int(delta_t / (60*60)), int(delta_t / 60) % 60, delta_t % 60)
+            if len(urls) == 0:
+                text += """<li>[{}] {}</li>\n""".format(delta, theme["title"])
+            elif len(urls) == 1:
+                text += """<li>[{}] <a href="{}">{}</a></li>\n""".format(delta, urls[0], theme["title"])
+            else:
+                text += """<li>[{}] {}\n""".format(delta, theme["title"])
+                text += "<ul>\n"
+                for url in urls:
+                    text += """  <li><a href="{}">{}</a></li>\n""".format(url, url)
+                text += "</ul>\n"
+                text += "</li>\n"
+        text += "</ul>\n"
         return flask.render_template('export_advanced.html', section = "themes", text = text)
 
 
