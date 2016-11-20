@@ -16,7 +16,7 @@ app = flask.Flask(__name__)
 link_regexp = '''(?i)(https?://[^\s\"]+)'''
 
 def encode_description(desc):
-    temp = desc.replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br />") 
+    temp = desc.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br />") 
     temp = re.sub(link_regexp, '''<a href="\\1">\\1</a>''', temp)
     return temp
 
