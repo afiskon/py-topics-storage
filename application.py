@@ -1,12 +1,19 @@
 #!/usr/bin/env python3
 
-import postgresql
-import flask
-import json
-import re
-
+import postgresql, flask, json, re
+import socket, ssl, time
 from wtforms import Form, BooleanField, StringField, PasswordField, validators
 from wtforms.widgets import TextArea
+
+pgsql_conn_string = 'pq://eax@localhost/eax'
+irc_enabled = True
+irc_config = { 
+    'host': 'irc.gitter.im',
+    'port': '6667',
+    'nick': 'devzen_ru_twitter',
+    'password': 'SECRET',
+    'channel': 'DevZenRu/live'
+}
 
 app = flask.Flask(__name__)
 
@@ -14,6 +21,30 @@ app = flask.Flask(__name__)
 # app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
 link_regexp = '''(?i)(https?://[^\s\"]+)'''
+
+def irc_send(conf, msg_list):
+    tcp_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    ssl_sock = ssl.wrap_socket(tcp_sock)
+    ssl_sock.connect( (conf['host'], int(conf['port'])) )
+
+    def ssl_send(cmd):
+        ssl_sock.write(cmd.encode() + b'\r\n')
+
+    ssl_send('USER {0} localhost localhost {0}'.format(conf['nick']))
+    ssl_send('NICK {}'.format(conf['nick']))
+    ssl_send('PASS {}'.format(conf['password']))
+    ssl_send('JOIN #{}'.format(conf['channel']))
+    for msg in msg_list:
+        ssl_send('PRIVMSG #{} :{}'.format(conf['channel'], msg))
+        # time.sleep(1.1)
+    ssl_send('QUIT')
+
+    while True:
+        data = ssl_sock.read()
+        if data == b'': # enf of file
+            break
+
+    ssl_sock.close()
 
 def html_encode(text):
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;") 
@@ -39,7 +70,7 @@ class SureForm(Form):
     sure = BooleanField('Sure')
 
 def db_conn():
-    return postgresql.open('pq://eax@localhost/eax')
+    return postgresql.open(pgsql_conn_string)
 
 @app.route('/')
 def root():
@@ -120,6 +151,11 @@ def get_mark_current(theme_id):
     with db_conn() as db:
         update = db.prepare("""UPDATE themes SET status = 'c', updated = now(), current_at = now() WHERE id = $1""")
         update(theme_id)
+        if irc_enabled:
+            select = db.prepare("""SELECT description FROM themes WHERE id = $1""")
+            [(desc,)] = select(theme_id)
+            urls = extract_links(desc)
+            irc_send(irc_config, urls)
         return flask.redirect('/themes')
 
 @app.route('/themes/<int:theme_id>/mark/regular', methods=['GET'])
