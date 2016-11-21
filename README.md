@@ -1,5 +1,5 @@
 # py-topics-storage
-Simple podcast topics storage.
+Podcast topics storage.
 
 Main features:
 * Show notes generation with timestamps
