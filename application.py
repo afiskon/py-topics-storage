@@ -23,6 +23,8 @@ app = flask.Flask(__name__)
 link_regexp = '''(?i)(https?://[^\s\"]+)'''
 
 def irc_send(conf, msg_list):
+    if msg_list == []:
+        return
     tcp_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     ssl_sock = ssl.wrap_socket(tcp_sock)
     ssl_sock.connect( (conf['host'], int(conf['port'])) )
@@ -151,10 +153,10 @@ def get_mark_current(theme_id):
     with db_conn() as db:
         update = db.prepare("""UPDATE themes SET status = 'c', updated = now(), current_at = now() WHERE id = $1""")
         update(theme_id)
-        urls = extract_links(desc)
-        if urls != [] and irc_enabled:
+        if irc_enabled:
             select = db.prepare("""SELECT description FROM themes WHERE id = $1""")
             [(desc,)] = select(theme_id)
+            urls = extract_links(desc)
             irc_send(irc_config, urls)
         return flask.redirect('/themes')
 
