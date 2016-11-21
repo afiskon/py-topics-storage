@@ -23,6 +23,12 @@ def encode_description(desc):
     temp = re.sub(link_regexp, '''<a href="\\1">\\1</a>''', temp)
     return temp
 
+def extract_links(text):
+    urls = []
+    for m in re.finditer(link_regexp, text):
+        urls.append(m.group(1))
+    return urls
+
 app.jinja_env.globals.update(encode_description = encode_description)
 
 class SubmitForm(Form):
@@ -150,9 +156,7 @@ def get_export_classic():
         desc_list = db.query("""SELECT description FROM themes WHERE status = 'd' ORDER BY updated""")
         urls = []
         for (desc,) in desc_list:
-            # app.logger.info("""description = {}""".format(desc))
-            for m in re.finditer(link_regexp, desc):
-                urls.append(m.group(1))
+            urls += extract_links(desc)
         return flask.render_template('export_classic.html', section = "themes", urls = urls)
 
 @app.route('/export/advanced', methods=['GET'])
@@ -165,9 +169,7 @@ def get_export_advanced():
                                """FROM themes AS t WHERE t.status = 'd' ORDER BY updated""")
         text = "<ul>\n"
         for theme in themes_list:
-            urls = []
-            for m in re.finditer(link_regexp, theme["description"]):
-                urls.append(m.group(1))
+            urls = extract_links(theme["description"])
             delta_t = max(0, theme["theme_tstamp"] - start_tstamp)
             delta = "{:02}:{:02}:{:02}".format(int(delta_t / (60*60)), int(delta_t / 60) % 60, delta_t % 60)
             if len(urls) == 0:
