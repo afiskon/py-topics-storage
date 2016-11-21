@@ -151,10 +151,10 @@ def get_mark_current(theme_id):
     with db_conn() as db:
         update = db.prepare("""UPDATE themes SET status = 'c', updated = now(), current_at = now() WHERE id = $1""")
         update(theme_id)
-        if irc_enabled:
+        urls = extract_links(desc)
+        if urls != [] and irc_enabled:
             select = db.prepare("""SELECT description FROM themes WHERE id = $1""")
             [(desc,)] = select(theme_id)
-            urls = extract_links(desc)
             irc_send(irc_config, urls)
         return flask.redirect('/themes')
 
