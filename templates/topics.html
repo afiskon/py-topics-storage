@@ -16,22 +16,22 @@
     {% endif %}
 {% endmacro %}
 
-{% macro render_themes(themes_list) %}
-    {% if themes_list == [] %}
+{% macro render_topics(topics_list) %}
+    {% if topics_list == [] %}
         <p><em>(None)</em></p>
 
     {% else %}
-		{% for theme in themes_list %}
+		{% for topic in topics_list %}
 
-			<div class="theme">
-			<p>{{ render_priority(theme["priority"]) }} (<a href="/themes/{{ theme["id"] }}/priority/up">up</a> / <a href="/themes/{{ theme["id"] }}/priority/down">down</a>) | {{ theme["title"] }}</p>
+			<div class="topic">
+			<p><strong>{{ render_priority(topic["priority"]) }} (<a href="/topics/{{ topic["id"] }}/priority/up">up</a> / <a href="/topics/{{ topic["id"] }}/priority/down">down</a>) | {{ topic["title"] }}</strong></p>
 
-			<p>{{ encode_description(theme["description"])|safe }}</p>
-            <p>{# Submitted {{ theme["created"].date() }} by {{ theme["login"] }} | #}
-			Actions: <a href="/themes/{{ theme["id"] }}/edit">edit</a>, mark:
-                     <a href="/themes/{{ theme["id"] }}/mark/current">current</a>,
-                     <a href="/themes/{{ theme["id"] }}/mark/regular">regular</a>,
-                     <a href="/themes/{{ theme["id"] }}/mark/discussed">discussed</a>.
+			<p>{{ encode_description(topic["description"])|safe }}</p>
+            <p>{# Submitted {{ topic["created"].date() }} by {{ topic["login"] }} | #}
+			Actions: <a href="/topics/{{ topic["id"] }}/edit">edit</a>, mark:
+                     <a href="/topics/{{ topic["id"] }}/mark/current">current</a>,
+                     <a href="/topics/{{ topic["id"] }}/mark/regular">regular</a>,
+                     <a href="/topics/{{ topic["id"] }}/mark/discussed">discussed</a>.
 {# | Actions: <a href="#">Edit</a>, <a href="#">Delete</a> #}
             </p>
 			</div>
@@ -40,15 +40,15 @@
     {% endif %}
 {% endmacro %}
 
-{% block title %}Themes{% endblock %}
+{% block title %}Topics{% endblock %}
 {% block body %}
 	<h2>Current</h2>
 
-    {{ render_themes(current) }}
+    {{ render_topics(current) }}
 
 	<h2>Regular</h2>
 
-    {{ render_themes(regular) }}
+    {{ render_topics(regular) }}
 
 	<h2>Discussed</h3>
 
@@ -57,13 +57,13 @@
     </div>
 
     <div style="float: right;">
-    <form action="/themes/discussed/clear" method="post">
+    <form action="/topics/discussed/clear" method="post">
 	Clear discussed: <input type="checkbox" name="sure" value="sure"> I know what I'm doing <input type="submit" value="Clear!" />
     </form>
     </div>
     <div style="clear: both;"></div>
 
-    {{ render_themes(discussed) }}
+    {{ render_topics(discussed) }}
 
 {% endblock %}
 

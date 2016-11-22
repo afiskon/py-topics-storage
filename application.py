@@ -6,7 +6,7 @@ from wtforms import Form, BooleanField, StringField, PasswordField, validators
 from wtforms.widgets import TextArea
 
 pgsql_conn_string = 'pq://eax@localhost/eax'
-irc_enabled = True
+irc_enabled = False
 irc_config = { 
     'host': 'irc.gitter.im',
     'port': '6667',
@@ -76,7 +76,7 @@ def db_conn():
 
 @app.route('/')
 def root():
-    return flask.redirect('/themes')
+    return flask.redirect('/topics')
 
 def report_error(code):
     data = flask.render_template('error.html', message = 'Error code {}'.format(code))
@@ -108,14 +108,14 @@ def get_recording():
         rows = db.query("SELECT (value :: timestamp) FROM global WHERE key = 'recording_start_time'")
         return flask.render_template('recording.html', section = "recording", timestamp = rows[0])
 
-@app.route('/themes', methods=['GET'])
-def get_themes():
+@app.route('/topics', methods=['GET'])
+def get_topics():
     with db_conn() as db:
-        select = "SELECT t.*, u.login FROM themes AS t LEFT JOIN users AS u ON u.id = t.created_by" 
+        select = "SELECT t.*, u.login FROM topics AS t LEFT JOIN users AS u ON u.id = t.created_by" 
         current = db.query(select + " WHERE t.status = 'c'")
         regular = db.query(select + " WHERE t.status = 'r' ORDER BY t.priority DESC")
         discussed = db.query(select + " WHERE t.status = 'd' ORDER BY t.updated")
-        return flask.render_template('themes.html', section = "themes", current = current, regular = regular, discussed = discussed)
+        return flask.render_template('topics.html', section = "topics", current = current, regular = regular, discussed = discussed)
 
 @app.route('/submit', methods=['GET', 'POST'])
 def get_submit():
@@ -125,77 +125,77 @@ def get_submit():
             [(uid,)] = db.query("""SELECT id FROM users WHERE login = 'admin'""")
             # app.logger.info("""uid = {}, description = {}""".format(uid, form.description.data))
             insert = db.prepare(
-                "INSERT INTO themes (title, description, rev, created, created_by, updated, updated_by, current_at, discussed_at, status, priority) " +
+                "INSERT INTO topics (title, description, rev, created, created_by, updated, updated_by, current_at, discussed_at, status, priority) " +
                 "VALUES ($1, $2, 1, now(), $3, now(), $3, now(), now(), 'r', 30) ")
             insert(form.title.data, form.description.data, uid)
-            return flask.redirect('/themes')
+            return flask.redirect('/topics')
 
     return flask.render_template('submit.html', section = "submit", form = form)
 
-@app.route('/themes/<int:theme_id>/edit', methods=['GET', 'POST'])
-def get_themes_edit(theme_id):
+@app.route('/topics/<int:topic_id>/edit', methods=['GET', 'POST'])
+def get_topics_edit(topic_id):
     form = SubmitForm(flask.request.form)
     if flask.request.method == 'POST' and form.validate():
          with db_conn() as db:
-            update = db.prepare("""UPDATE themes SET title = $2, description = $3, updated = now(), rev = rev + 1 WHERE id = $1""")
-            update(theme_id, form.title.data, form.description.data)
-            return flask.redirect('/themes')
+            update = db.prepare("""UPDATE topics SET title = $2, description = $3, updated = now(), rev = rev + 1 WHERE id = $1""")
+            update(topic_id, form.title.data, form.description.data)
+            return flask.redirect('/topics')
     else:
         with db_conn() as db:
-            select = db.prepare("""SELECT title, description FROM themes WHERE id = $1""")
-            [(title, description)] = select(theme_id)
+            select = db.prepare("""SELECT title, description FROM topics WHERE id = $1""")
+            [(title, description)] = select(topic_id)
             form = SubmitForm(title = title, description = description)
-            return flask.render_template('edit.html', section = "submit", theme_id = theme_id, form = form)
+            return flask.render_template('edit.html', section = "submit", topic_id = topic_id, form = form)
 
 
-@app.route('/themes/<int:theme_id>/mark/current', methods=['GET'])
-def get_mark_current(theme_id):
+@app.route('/topics/<int:topic_id>/mark/current', methods=['GET'])
+def get_mark_current(topic_id):
     with db_conn() as db:
-        update = db.prepare("""UPDATE themes SET status = 'c', updated = now(), current_at = now() WHERE id = $1""")
-        update(theme_id)
+        update = db.prepare("""UPDATE topics SET status = 'c', updated = now(), current_at = now() WHERE id = $1""")
+        update(topic_id)
         if irc_enabled:
-            select = db.prepare("""SELECT description FROM themes WHERE id = $1""")
-            [(desc,)] = select(theme_id)
+            select = db.prepare("""SELECT description FROM topics WHERE id = $1""")
+            [(desc,)] = select(topic_id)
             urls = extract_links(desc)
             irc_send(irc_config, urls)
-        return flask.redirect('/themes')
+        return flask.redirect('/topics')
 
-@app.route('/themes/<int:theme_id>/mark/regular', methods=['GET'])
-def get_mark_regular(theme_id):
+@app.route('/topics/<int:topic_id>/mark/regular', methods=['GET'])
+def get_mark_regular(topic_id):
     with db_conn() as db:
-        update = db.prepare("""UPDATE themes SET status = 'r', updated = now() WHERE id = $1""")
-        update(theme_id)
-        return flask.redirect('/themes')
+        update = db.prepare("""UPDATE topics SET status = 'r', updated = now() WHERE id = $1""")
+        update(topic_id)
+        return flask.redirect('/topics')
 
-@app.route('/themes/<int:theme_id>/mark/discussed', methods=['GET'])
-def get_mark_discussed(theme_id):
+@app.route('/topics/<int:topic_id>/mark/discussed', methods=['GET'])
+def get_mark_discussed(topic_id):
     with db_conn() as db:
-        update = db.prepare("""UPDATE themes SET status = 'd', updated = now(), discussed_at = now() WHERE id = $1""")
-        update(theme_id)
-        return flask.redirect('/themes')
+        update = db.prepare("""UPDATE topics SET status = 'd', updated = now(), discussed_at = now() WHERE id = $1""")
+        update(topic_id)
+        return flask.redirect('/topics')
 
-@app.route('/themes/<int:theme_id>/priority/<string:action>', methods=['GET'])
-def get_priority(theme_id, action):
+@app.route('/topics/<int:topic_id>/priority/<string:action>', methods=['GET'])
+def get_priority(topic_id, action):
     if not (action == "up" or action == "down"):
-        return flask.redirect('/themes')
+        return flask.redirect('/topics')
 
     delta = 10
     if action == "down":
         delta = -delta
 
     with db_conn() as db:
-        update = db.prepare("""UPDATE themes SET priority = least(50, greatest(10, priority + ($2))), updated = now() WHERE id = $1""")
-        update(theme_id, delta)
-        return flask.redirect('/themes')
+        update = db.prepare("""UPDATE topics SET priority = least(50, greatest(10, priority + ($2))), updated = now() WHERE id = $1""")
+        update(topic_id, delta)
+        return flask.redirect('/topics')
 
 @app.route('/export/classic', methods=['GET'])
 def get_export_classic():
     with db_conn() as db:
-        desc_list = db.query("""SELECT description FROM themes WHERE status = 'd' ORDER BY updated""")
+        desc_list = db.query("""SELECT description FROM topics WHERE status = 'd' ORDER BY updated""")
         urls = []
         for (desc,) in desc_list:
             urls += extract_links(desc)
-        return flask.render_template('export_classic.html', section = "themes", urls = urls)
+        return flask.render_template('export_classic.html', section = "topics", urls = urls)
 
 @app.route('/export/advanced', methods=['GET'])
 def get_export_advanced():
@@ -203,35 +203,36 @@ def get_export_advanced():
         select = db.prepare("""SELECT (extract (epoch from (value :: timestamp))) :: int """ + 
                             """FROM global WHERE key = 'recording_start_time'""")
         [(start_tstamp,)] = select()
-        themes_list = db.query("""SELECT t.*, ((extract (epoch from (current_at :: timestamp))) :: int) AS theme_tstamp """ + 
-                               """FROM themes AS t WHERE t.status = 'd' ORDER BY updated""")
+        topics_list = db.query("""SELECT t.*, ((extract (epoch from (current_at :: timestamp))) :: int) AS topic_tstamp """ + 
+                               """FROM topics AS t WHERE t.status = 'd' ORDER BY updated""")
         text = "<ul>\n"
-        for theme in themes_list:
-            urls = extract_links(theme["description"])
-            delta_t = max(0, theme["theme_tstamp"] - start_tstamp)
-            delta = "{:02}:{:02}:{:02}".format(int(delta_t / (60*60)), int(delta_t / 60) % 60, delta_t % 60)
+        for topic in topics_list:
+            urls = extract_links(topic["description"])
+            delta_t = max(0, topic["topic_tstamp"] - start_tstamp)
+            # delta = "{:02}:{:02}:{:02}".format(int(delta_t / (60*60)), int(delta_t / 60) % 60, delta_t % 60)
+            delta = "{:02}:{:02}".format(int(delta_t / (60*60)), int(delta_t / 60) % 60)
             if len(urls) == 0:
-                text += """<li>[{}] {}</li>\n""".format(delta, html_encode(theme["title"]))
+                text += """<li>[{}] {}</li>\n""".format(delta, html_encode(topic["title"]))
             elif len(urls) == 1:
-                text += """<li>[{}] <a href="{}">{}</a></li>\n""".format(delta, urls[0], html_encode(theme["title"]))
+                text += """<li>[{}] <a href="{}">{}</a></li>\n""".format(delta, urls[0], html_encode(topic["title"]))
             else:
-                text += """<li>[{}] {}\n""".format(delta, html_encode(theme["title"]))
+                text += """<li>[{}] {}\n""".format(delta, html_encode(topic["title"]))
                 text += "<ul>\n"
                 for url in urls:
                     text += """  <li><a href="{}">{}</a></li>\n""".format(url, url)
                 text += "</ul>\n"
                 text += "</li>\n"
         text += "</ul>\n"
-        return flask.render_template('export_advanced.html', section = "themes", text = text)
+        return flask.render_template('export_advanced.html', section = "topics", text = text)
 
 
-@app.route('/themes/discussed/clear', methods=['POST'])
+@app.route('/topics/discussed/clear', methods=['POST'])
 def post_discussed_clear():
     form = SureForm(flask.request.form)
     if form.validate() and form.sure.data == True:
          with db_conn() as db:
-            db.query("""DELETE FROM themes WHERE status = 'd'""")
-    return flask.redirect('/themes')
+            db.query("""DELETE FROM topics WHERE status = 'd'""")
+    return flask.redirect('/topics')
 
 if __name__ == '__main__':
     app.debug = True  # enables auto reload during development

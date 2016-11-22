@@ -1,8 +1,8 @@
 {% extends "layout.html" %}
-{% block title %}Edit theme{% endblock %}
+{% block title %}Edit topic{% endblock %}
 {% block body %}
-<h1>Edit theme</h1>
-<form method="post" action="/themes/{{ theme_id }}/edit">
+<h1>Edit topic</h1>
+<form method="post" action="/topics/{{ topic_id }}/edit">
 <p>Title: {{ form.title(size="70") }}</p>
 {{ form.description(cols="80", rows="5") }}
 <p><input type="submit" value="Submit"></p>

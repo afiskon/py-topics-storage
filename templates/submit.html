@@ -1,10 +1,9 @@
 {% extends "layout.html" %}
 {% block title %}Submit{% endblock %}
 {% block body %}
-<h1>Submit a theme</h1>
-<p>Input text and links here:</p>
+<h1>Submit a topic</h1>
 <form method="post" action="/submit">
-<p>Title: {{ form.title(size="70") }}</p>
+<p>Title*: {{ form.title(size="70") }}</p>
 {{ form.description(cols="80", rows="5") }}
 <p><input type="submit" value="Submit"></p>
 </form>

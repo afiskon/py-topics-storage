@@ -22,7 +22,7 @@ values(
   now()
 );
 
-create table themes(
+create table topics(
   id serial not null primary key,
   rev int not null,
   title varchar(128) not null, -- required
@@ -39,7 +39,7 @@ create table themes(
 
 create table responsibles(
   uid int references users(id) not null,
-  tid int references themes(id) not null,
+  tid int references topics(id) not null,
   constraint uid_tid_unique unique(uid, tid)
 );
 
