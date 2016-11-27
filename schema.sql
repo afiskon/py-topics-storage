@@ -57,3 +57,6 @@ create table global(
 );
 
 insert into global values ( 'recording_start_time', now() :: text );
+
+-- to manually fix recording_start_time use the following query:
+-- update global set value = (select min(current_at) from topics where status = 'd') :: text where key = 'recording_start_time';
