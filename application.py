@@ -204,7 +204,7 @@ def get_export_advanced():
                             """FROM global WHERE key = 'recording_start_time'""")
         [(start_tstamp,)] = select()
         topics_list = db.query("""SELECT t.*, ((extract (epoch from (current_at :: timestamp))) :: int) AS topic_tstamp """ + 
-                               """FROM topics AS t WHERE t.status = 'd' ORDER BY updated""")
+                               """FROM topics AS t WHERE t.status = 'd' ORDER BY current_at""")
         text = "<ul>\n"
         for topic in topics_list:
             urls = extract_links(topic["description"])
