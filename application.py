@@ -20,7 +20,7 @@ app = flask.Flask(__name__)
 # disables JSON pretty-printing in flask.jsonify
 # app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
-link_regexp = '''(?i)(https?://[^\s\"]+)'''
+link_regexp = '''(?i)(https?://[^\s\"\(\)]+)'''
 
 def irc_send(conf, msg_list):
     if msg_list == []:
