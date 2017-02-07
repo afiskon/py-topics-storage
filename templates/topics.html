@@ -16,7 +16,7 @@
     {% endif %}
 {% endmacro %}
 
-{% macro render_topics(topics_list) %}
+{% macro render_topics(topics_list, section) %}
     {% if topics_list == [] %}
         <p><em>(None)</em></p>
 
@@ -29,10 +29,21 @@
 			<p>{{ encode_description(topic["description"])|safe }}</p>
             <p>{# Submitted {{ topic["created"].date() }} by {{ topic["login"] }} | #}
 			Actions: <a href="/topics/{{ topic["id"] }}/edit">edit</a>, mark:
+                     {% if section == 'current' %}
+                     <em>current</em>,
+                     {% else %}
                      <a href="/topics/{{ topic["id"] }}/mark/current">current</a>,
+                     {% endif %}
+                     {% if section == 'regular' %}
+                     <em>regular</em>,
+                     {% else %}
                      <a href="/topics/{{ topic["id"] }}/mark/regular">regular</a>,
+                     {% endif %}
+                     {% if section == 'discussed' %}
+                     <em>discussed</em>,
+                     {% else %}
                      <a href="/topics/{{ topic["id"] }}/mark/discussed">discussed</a>.
-{# | Actions: <a href="#">Edit</a>, <a href="#">Delete</a> #}
+                     {% endif %}
             </p>
 			</div>
 
@@ -47,11 +58,11 @@
 
 	<h2>Current</h2>
 
-    {{ render_topics(current) }}
+    {{ render_topics(current, 'current') }}
 
 	<h2>Regular</h2>
 
-    {{ render_topics(regular) }}
+    {{ render_topics(regular, 'regular') }}
 
 	<h2>Discussed</h3>
 
@@ -66,7 +77,7 @@
     </div>
     <div style="clear: both;"></div>
 
-    {{ render_topics(discussed) }}
+    {{ render_topics(discussed, 'discussed') }}
 
 {% endblock %}
 
